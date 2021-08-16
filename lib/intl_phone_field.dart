@@ -31,6 +31,7 @@ class IntlPhoneField extends StatefulWidget {
   /// For validator to work, turn [autoValidate] to [false]
   final FormFieldValidator<String>? validator;
   final bool autoValidate;
+  final ValueChanged<bool>? onValid;
 
   /// {@macro flutter.widgets.editableText.keyboardType}
   final TextInputType keyboardType;
@@ -184,6 +185,7 @@ class IntlPhoneField extends StatefulWidget {
       this.dropdownTextStyle,
       this.onSubmitted,
       this.validator,
+      this.onValid,
       this.onChanged,
       this.countries,
       this.onCountryChanged,
@@ -227,10 +229,15 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         orElse: () => _countryList.first);
 
     validator = widget.autoValidate
-        ? ((value) =>
-            value != null && value.length != _selectedCountry['max_length']
-                ? 'Invalid Mobile Number'
-                : null)
+        ? (value) {
+            var isInvalid =
+                value != null && value.length != _selectedCountry['max_length'];
+            if (widget.onValid != null) {
+              widget.onValid!(!isInvalid);
+              return null;
+            }
+            return isInvalid ? 'Invalid Mobile Number' : null;
+          }
         : widget.validator;
   }
 

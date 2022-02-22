@@ -172,6 +172,9 @@ class IntlPhoneField extends StatefulWidget {
   /// Autovalidate mode for text form field
   final AutovalidateMode? autovalidateMode;
 
+  /// Validation callback
+  final ValueChanged<bool>? onValid;
+
   /// Whether to show or hide country flag.
   ///
   /// Default value is `true`.
@@ -228,6 +231,7 @@ class IntlPhoneField extends StatefulWidget {
     this.dropdownTextStyle,
     this.onSubmitted,
     this.validator,
+    this.onValid,
     this.onChanged,
     this.countries,
     this.onCountryChanged,
@@ -365,12 +369,15 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         // validate here to take care of async validation
         var msg;
         if (widget.autovalidateMode != AutovalidateMode.disabled) {
-          msg = widget.disableLengthCheck ||
-                  value.length >= _selectedCountry.minLength &&
-                      value.length <= _selectedCountry.maxLength
+          var isValidLength = value.length >= _selectedCountry.minLength &&
+              value.length <= _selectedCountry.maxLength;
+          msg = widget.disableLengthCheck || isValidLength
               ? null
               : (widget.invalidNumberMessage ?? 'Invalid Mobile Number');
           msg ??= await widget.validator?.call(phoneNumber.completeNumber);
+          if (widget.onValid != null) {
+            widget.onValid!(msg == null);
+          }
           setState(() => validationMessage = msg);
         }
         widget.onChanged?.call(phoneNumber);
